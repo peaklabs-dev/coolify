@@ -18,8 +18,8 @@ jobs:
           stale-pr-message: 'This pull request will be closed in a few days if no response is received. Please update or comment if you would like to continue working on it.'
           close-issue-message: 'This issue has been closed due to inactivity. Reason: stale'
           close-pr-message: 'This pull request has been closed due to inactivity. Reason: stale'
-          days-before-stale: 10
-          days-before-close: 4
+          days-before-stale: 0
+          days-before-close: 0
           stale-issue-label: '⏱︎ Stale'
           stale-pr-label: '⏱︎ Stale'
           only-labels: '💤 Waiting for feedback'

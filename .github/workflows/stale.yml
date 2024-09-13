@@ -1,6 +1,8 @@
 name: Manage Stale Issues and PRs
 
 on:
+  push:
+    branches: ["main"]
   schedule:
     - cron: '0 2 * * *'
 

@@ -1,5 +1,5 @@
 name: 💎 Enhancement Bounty
-description: "Propose a new feature, service, or improvement with an attached bounty"
+description: "Propose a new feature, service, or improvement with an attached bounty."
 title: "[Bounty]: "
 labels: ["✨ Enhancement", "🔍 Triage"]
 body:
@@ -7,16 +7,17 @@ body:
     attributes:
       value: |
         # 💎 Add a Bounty (with [algora.io](https://console.algora.io/org/coollabsio/bounties/new))
-          - This issue template is only for proposing new features, services, or improvements with an attached bounty.
-          - [Click here to get started](https://console.algora.io/org/coollabsio/bounties/new).
+          - This issue template is exclusively for proposing new features, services, or improvements with an attached bounty.
+          - [Click here to create a new bounty](https://console.algora.io/org/coollabsio/bounties/new).
 
         # Important
-        - Please do not use this template if you are not adding a bounty to your request.
+        - Please do not use this template unless you are adding a bounty to your request.
+        - **Enhancements without a bounty can be discussed in [Github Discussions](https://github.com/coollabsio/coolify/discussions).**
 
   - type: dropdown
     attributes:
       label: Request Type
-      description: Select the type of request you are making
+      description: Select the type of request you are making.
       options:
         - New Feature
         - New Service
@@ -34,7 +35,12 @@ body:
   - type: checkboxes
     attributes:
       label: Terms
-      description: By submitting this issue, you agree to the following
+      description: "By submitting this issue, you agree to the following:"
       options:
-        - label: I have/will add a bounty to this request.
+        - label: I have added or will add a bounty to this request.
           required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        **Note: Your issue will only be considered if a bounty is attached. Please ensure you complete the bounty creation process on algora.io before submitting this issue.**

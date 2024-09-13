@@ -11,8 +11,8 @@ body:
           - [Click here to create a new bounty](https://console.algora.io/org/coollabsio/bounties/new).
 
         # Important
-        - Please do not use this template unless you are adding a bounty to your request.
-        - **Enhancements without a bounty can be discussed in [Github Discussions](https://github.com/coollabsio/coolify/discussions).**
+        - **Please do not use this template unless you are adding a bounty to your request.**
+        - **Enhancements without a bounty can be discussed in the appropriate category of [Github Discussions](https://github.com/coollabsio/coolify/discussions).**
 
   - type: dropdown
     attributes:
@@ -39,8 +39,3 @@ body:
       options:
         - label: I have added or will add a bounty to this request.
           required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        **Note: Your issue will only be considered if a bounty is attached. Please ensure you complete the bounty creation process on algora.io before submitting this issue.**

@@ -1,6 +1,8 @@
 name: Remove Labels and Assignees on Issue Close
 
 on:
+  repository_dispatch:
+    types: [stale-closed]
   issues:
     types: [closed]
   pull_request:

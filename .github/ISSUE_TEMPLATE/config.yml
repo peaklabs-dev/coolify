@@ -1,8 +1,30 @@
+name: Issue Templates
+description: Choose the appropriate template for your issue
+body: Please select the most relevant template for your issue.
+
 blank_issues_enabled: false
+
 contact_links:
-  - name: 🤔 Community Support (Chat)
+  - name: 🐛 Bug Report
+    url: https://github.com/coollabsio/coolify/issues/new?template=bug_report.md
+    about: Report a bug or unexpected behavior
+
+  - name: 💰 Enhancement Bounty
+    url: https://github.com/coollabsio/coolify/issues/new?template=enhancement_bounty.md
+    about: Suggest an enhancement with a bounty attached
+
+  - name: 💡 Non-Bounty Feature Request
+    url: https://github.com/coollabsio/coolify/discussions/categories/feature-requests
+    about: Suggest a new feature or improvement without a bounty
+
+  - name: ⚙️ Service Request
+    url: https://github.com/coollabsio/coolify/discussions/categories/service-requests
+    about: Request a new service integration
+
+  - name: 🔧 Improvements
+    url: https://github.com/coollabsio/coolify/discussions/categories/improvements
+    about: Suggest improvements to existing features
+
+  - name: 🤔 Questions and Community Support
     url: https://coollabs.io/discord
-    about: Reach out to us on Discord.
-  - name: 🙋‍♂️ Feature Requests
-    url: https://github.com/coollabsio/coolify/discussions/categories/new-features
-    about: All feature requests will be discussed here.
+    about: If you have any questions, reach out to us on Discord

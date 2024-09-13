@@ -12,13 +12,14 @@ jobs:
     steps:
       - name: Manage stale issues and PRs
         uses: actions/stale@v9
+        id: stale
         with:
           stale-issue-message: 'This issue will be closed in a few days if no response is received. Please provide an update with the requested information.'
           stale-pr-message: 'This pull request will be closed in a few days if no response is received. Please update or comment if you would like to continue working on it.'
           close-issue-message: 'This issue has been closed due to inactivity. Reason: stale'
           close-pr-message: 'This pull request has been closed due to inactivity. Reason: stale'
-          days-before-stale: 0
-          days-before-close: 0
+          days-before-stale: 10
+          days-before-close: 4
           stale-issue-label: '⏱︎ Stale'
           stale-pr-label: '⏱︎ Stale'
           only-labels: '💤 Waiting for feedback'
@@ -30,8 +31,14 @@ jobs:
           ignore-updates: false
           labels-to-remove-when-unstale: '⏱︎ Stale, 💤 Waiting for feedback'
           labels-to-add-when-unstale: ''
-          labels-to-remove-when-stale: '*'
+          labels-to-remove-when-stale: ''  # Remove this line
           any-of-labels: ''
           ascending: false
           close-issue-reason: 'not_planned'
           exempt-all-milestones: false
+
+      - name: Trigger remove labels and assignees action
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: stale-closed

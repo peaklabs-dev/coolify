@@ -1,27 +1,18 @@
-name: Bug Report
+name: 🐞 Bug Report
 description: "File a new bug report"
 title: "[Bug]: "
-labels: ["🐛 Bug", "🔍 Triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        # 💎 Important: Bounty Program
-        - If you want faster issue resolution, consider adding a bounty to this issue through our [Bounty Program](https://console.algora.io/org/coollabsio/bounties/new).
-
-        # Before Submitting
-        - **Ensure you are using the latest version of Coolify before reporting a bug.**
+        # 💎 Bounty Program (with [algora.io](https://console.algora.io/org/coollabsio/bounties/new))
+        - If you would like to prioritize the issue resolution, consider adding a bounty to this issue through our [Bounty Program](https://console.algora.io/org/coollabsio/bounties/new).
 
   - type: textarea
-    id: error-and-logs
     attributes:
-      label: Error Message and Logs
-      description: Provide a detailed description of the error or exception you encountered, along with any relevant log output.
-    validations:
-      required: true
-
+      label: Description
+      description: A clear and concise description of the problem
   - type: textarea
-    id: reproduction-steps
     attributes:
       label: Steps to Reproduce
       description: Provide a step-by-step guide to reproduce the issue. Please be as detailed as possible, otherwise we may not be able to assist you.
@@ -32,29 +23,15 @@ body:
         4.
     validations:
       required: true
-
-  - type: input
-    id: example-repo
+  - type: textarea
     attributes:
-      label: Example Repository URL
-      description: If applicable, provide a URL to a repository demonstrating the issue.
-
+      label: Exception or Error
+      description: Please provide error logs if possible.
   - type: input
-    id: coolify-version
     attributes:
       label: Coolify Version
       description: Please provide the Coolify version you are using. This can be found in the top left corner of your Coolify dashboard.
       placeholder: "v4.0.0-beta.335"
-    validations:
-      required: true
-
-  - type: dropdown
-    id: cloud-version
-    attributes:
-      label: Are you using Coolify Cloud?
-      options:
-        - "No (self-hosted)"
-        - "Yes (Coolify Cloud)"
     validations:
       required: true
 
@@ -70,3 +47,11 @@ body:
     attributes:
       label: Additional Information
       description: Any other relevant details about the issue.
+
+  - type: checkboxes
+    id: using-latest-version
+    attributes:
+      label: Make sure you are using the latest version of Coolify before submitting this issue.
+      options:
+        - label: I confirm that I am using the latest version of Coolify.
+          required: true

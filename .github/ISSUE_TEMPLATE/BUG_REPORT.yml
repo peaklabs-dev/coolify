@@ -7,8 +7,8 @@ body:
     attributes:
       value: |
         ## Important
-        - Ensure you are using the latest version of Coolify before reporting a bug.
-        - Consider adding a bounty to prioritize this issue through our [Bounty Program](https://console.algora.io/org/coollabsio/bounties/new).
+        - *Ensure you are using the latest version of Coolify before reporting a bug.*
+        - If you would like to prioritize the issue resolution, consider adding a bounty to this issue through our [Bounty Program](https://console.algora.io/org/coollabsio/bounties/new).
 
   - type: textarea
     id: error-and-logs

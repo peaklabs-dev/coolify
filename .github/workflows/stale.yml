@@ -38,7 +38,8 @@ jobs:
           exempt-all-milestones: false
 
       - name: Trigger remove labels and assignees action
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: stale-closed
+          client-payload: '{"closed_by": "stale"}'

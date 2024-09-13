@@ -1,0 +1,48 @@
+name: Bounty - Feature/Server/Improvement Request
+description: "Propose a new feature, server, or improvement with an attached bounty"
+title: "[Bounty]: "
+labels: ["✨ Enhancement", "🔍 Triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 💎 Bounty Program (with Algora.io)
+        This issue template is for proposing a new feature, server, or improvement with an attached bounty.
+
+        [Click here to get started](https://console.algora.io/org/coollabsio/bounties/new).
+
+        # Important
+        - This template is for feature requests, improvements, or new services that have a bounty attached.
+        - Please do not use this template if you are not adding a bounty to your request.
+        - For bug reports or non-bounty feature requests, please use the appropriate template.
+
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: Request Type
+      description: Select the type of request you are making
+      options:
+        - New Feature
+        - Improvement
+        - New Service
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide a detailed description of the feature, improvement, or service you are proposing.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms
+      description: By submitting this issue, you agree to the following
+      options:
+        - label: I have added a bounty to this request and provided the necessary information
+          required: true
+        - label: I understand that issues without a valid bounty will be closed or converted to regular feature requests.
+

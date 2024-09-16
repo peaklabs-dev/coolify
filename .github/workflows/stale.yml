@@ -43,3 +43,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: stale-closed
           client-payload: '{"closed_by": "stale"}'
+

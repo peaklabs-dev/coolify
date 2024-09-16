@@ -6,6 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
+        > [!NOTE]
+        > Make sure you are using the latest version of Coolify before submitting this issue (as the bug could have been fixed already).
         # 💎 Bounty Program (with [algora.io](https://console.algora.io/org/coollabsio/bounties/new))
           - If you would like to prioritize the issue resolution, consider adding a bounty to this issue through our [Bounty Program](https://console.algora.io/org/coollabsio/bounties/new).
 
@@ -60,10 +62,3 @@ body:
     attributes:
       label: Additional Information
       description: Any other relevant details about the issue.
-
-  - type: checkboxes
-    attributes:
-      label: Make sure you are using the latest version of Coolify before submitting this issue (as the bug could have been fixed already).
-      options:
-        - label: I confirm that I am using the latest version of Coolify.
-          required: true

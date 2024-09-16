@@ -6,14 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        > [!NOTE]
-        > **This issue template is exclusively for proposing new features, services, or improvements with an attached bounty.Enhancements without a bounty can be discussed in the appropriate category of [Github Discussions](https://github.com/coollabsio/coolify/discussions).
+        > [!IMPORTANT]
+        > **This issue template is exclusively for proposing new features, services, or improvements with an attached bounty.** Enhancements without a bounty can be discussed in the appropriate category of [Github Discussions](https://github.com/coollabsio/coolify/discussions).
 
         # 💎 Add a Bounty (with [algora.io](https://console.algora.io/org/coollabsio/bounties/new))
-          - 
           - [Click here to create a new bounty](https://console.algora.io/org/coollabsio/bounties/new).
 
-       
   - type: dropdown
     attributes:
       label: Request Type

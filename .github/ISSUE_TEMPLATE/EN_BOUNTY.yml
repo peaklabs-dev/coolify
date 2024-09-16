@@ -1,6 +1,6 @@
 name: 💎 Enhancement Bounty
 description: "Propose a new feature, service, or improvement with an attached bounty."
-title: "[Bounty]: "
+title: "[Enhancement]: "
 labels: ["✨ Enhancement", "🔍 Triage"]
 body:
   - type: markdown

@@ -28,6 +28,7 @@ class StartMongodb
         $this->commands = [
             "echo 'Starting {$database->name}.'",
             "mkdir -p $this->configuration_dir",
+            "mkdir -p $this->configuration_dir/docker-entrypoint-initdb.d/",
         ];
 
         $persistent_storages = $this->generate_local_persistent_volumes();
@@ -107,12 +108,6 @@ class StartMongodb
             $docker_compose['services'][$container_name]['command'] = $startCommand.' --config /etc/mongo/mongod.conf';
         }
         $this->add_default_database();
-        $docker_compose['services'][$container_name]['volumes'][] = [
-            'type' => 'bind',
-            'source' => $this->configuration_dir.'/docker-entrypoint-initdb.d',
-            'target' => '/docker-entrypoint-initdb.d',
-            'read_only' => true,
-        ];
 
         // Add custom docker run options
         $docker_run_options = convert_docker_run_to_compose($this->database->custom_docker_run_options);

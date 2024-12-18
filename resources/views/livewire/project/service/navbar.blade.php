@@ -163,10 +163,6 @@
     </div>
     @script
         <script>
-            $wire.$on('stopEvent', () => {
-                $wire.$dispatch('info', 'Stopping service.');
-                $wire.$call('stop');
-            });
             $wire.$on('startEvent', () => {
                 window.dispatchEvent(new CustomEvent('startservice'));
                 $wire.$call('start');

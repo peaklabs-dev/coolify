@@ -14,23 +14,26 @@ class StopService
 
     public function handle(Service $service, bool $isDeleteOperation = false, bool $dockerCleanup = true)
     {
-        try {
-            $server = $service->destination->server;
-            if (! $server->isFunctional()) {
-                return 'Server is not functional';
-            }
+        $server = $service->destination->server;
 
-            $containersToStop = $service->getContainersToStop();
-            $service->stopContainers($containersToStop, $server);
-
-            if (! $isDeleteOperation) {
-                $service->delete_connected_networks($service->uuid);
-                if ($dockerCleanup) {
-                    CleanupDocker::dispatch($server, true);
-                }
-            }
-        } catch (\Exception $e) {
-            return $e->getMessage();
+        if (! $server->isFunctional()) {
+            return 'Server is not functional';
         }
+
+        $containersToStop = $service->getContainers();
+
+        if (empty($containersToStop)) {
+            return 'No containers found to stop';
+        }
+
+        stopContainers($containersToStop, $server, 300);
+
+        if (! $isDeleteOperation) {
+            deleteConnectedNetworks($service->uuid, $server);
+            if ($dockerCleanup) {
+                CleanupDocker::dispatch($server, true);
+            }
+        }
+
     }
 }

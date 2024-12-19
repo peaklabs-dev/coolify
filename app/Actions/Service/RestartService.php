@@ -13,8 +13,19 @@ class RestartService
 
     public function handle(Service $service)
     {
-        StopService::run($service);
+        $server = $service->destination->server;
 
-        return StartService::run($service);
+        if (! $server->isFunctional()) {
+            return 'Server is not functional';
+        }
+
+        $containersToRestart = $service->getContainers();
+
+        if (empty($containersToRestart)) {
+            return 'No containers found to restart';
+        }
+
+        restartContainers($containersToRestart, $server, 300);
+
     }
 }

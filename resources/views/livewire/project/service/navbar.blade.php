@@ -8,7 +8,7 @@
     </x-slide-over>
     <h1>{{ $title }}</h1>
     <x-resources.breadcrumbs :resource="$service" :parameters="$parameters" />
-    <div class="navbar-main" x-data>
+    <div class="navbar-main" x-data">
         <nav class="flex flex-shrink-0 gap-6 items-center whitespace-nowrap scrollbar min-h-10">
             <a class="{{ request()->routeIs('project.service.configuration') ? 'dark:text-white' : '' }}"
                 href="{{ route('project.service.configuration', $parameters) }}">
@@ -26,30 +26,8 @@
         </nav>
         @if ($service->isDeployable)
             <div class="flex flex-wrap order-first gap-2 items-center sm:order-last">
+                <x-services.advanced :service="$service" />
                 @if (str($service->status)->contains('running'))
-                    <x-dropdown>
-                        <x-slot:title>Advanced</x-slot>
-                        <div class="dropdown-item" @click="$wire.dispatch('pullAndRestartEvent')">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M12.983 8.978c3.955 -.182 7.017 -1.446 7.017 -2.978c0 -1.657 -3.582 -3 -8 -3c-1.661 0 -3.204 .19 -4.483 .515m-2.783 1.228c-.471 .382 -.734 .808 -.734 1.257c0 1.22 1.944 2.271 4.734 2.74" />
-                                <path d="M4 6v6c0 1.657 3.582 3 8 3c.986 0 1.93 -.067 2.802 -.19m3.187 -.82c1.251 -.53 2.011 -1.228 2.011 -1.99v-6" />
-                                <path d="M4 12v6c0 1.657 3.582 3 8 3c3.217 0 5.991 -.712 7.261 -1.74m.739 -3.26v-4" />
-                                <path d="M3 3l18 18" />
-                            </svg>
-                            Pull Latest Images & Restart
-                        </div>
-                    </x-dropdown>
-                    <x-forms.button @click="$wire.dispatch('deployEvent')">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 dark:text-orange-400" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                            <path d="M10.09 4.01l.496 -.495a2 2 0 0 1 2.828 0l7.071 7.07a2 2 0 0 1 0 2.83l-7.07 7.07a2 2 0 0 1 -2.83 0l-7.07 -7.07a2 2 0 0 1 0 -2.83l3.535 -3.535h-3.988"></path>
-                            <path d="M7.05 11.038v-3.988"></path>
-                        </svg>
-                        Redeploy
-                    </x-forms.button>
                     <x-forms.button title="Restart" @click="$wire.dispatch('restartEvent')">
                         <svg class="w-5 h-5 dark:text-warning" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
@@ -60,13 +38,35 @@
                         Restart
                     </x-forms.button>
                 @elseif (str($service->status)->contains('degraded'))
-                    <button @click="$wire.dispatch('deployEvent')" class="gap-2 button">
+                    <x-forms.button title="Restart" @click="$wire.dispatch('deployEvent')">
                         <svg class="w-5 h-5 dark:text-warning" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                                 <path d="M19.933 13.041a8 8 0 1 1-9.925-8.788c3.899-1 7.935 1.007 9.425 4.747" />
                                 <path d="M20 4v5h-5" />
                             </g>
                         </svg>
+                        Restart
+                    </x-forms.button>
+                    <x-modal-confirmation title="Confirm Service Stopping?" buttonTitle="Stop" submitAction="stop"
+                        :checkboxes="$checkboxes" :actions="[__('service.stop'), __('resource.non_persistent')]" :confirmWithText="false" :confirmWithPassword="false"
+                        step1ButtonText="Continue" step2ButtonText="Stop Service" :dispatchEvent="true"
+                        dispatchEventType="stopEvent">
+                        <x-slot:button-title>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-error" viewBox="0 0 24 24"
+                                stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z">
+                                </path>
+                                <path
+                                    d="M14 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z">
+                                </path>
+                            </svg>
+                            Stop
+                        </x-slot:button-title>
+                    </x-modal-confirmation>
+                @elseif (str($service->status)->contains('exited'))
+                    <button @click="$wire.dispatch('startEvent')" class="gap-2 button">
                         Redeploy Degraded Services
                     </button>
                 @elseif (str($service->status)->contains('exited'))
@@ -130,12 +130,33 @@
     </div>
     @script
         <script>
-            $wire.$on('deployEvent', () => {
-                window.dispatchEvent(new CustomEvent('deployservice'));
-                $wire.$dispatch('info', 'Service deployment in progress.');
-                $wire.$call('deploy');
+            $wire.$on('stopEvent', () => {
+                $wire.$dispatch('info', 'Stopping service.');
+                $wire.$call('stop');
             });
-            $wire.$on('restartEvent', () => {
+            $wire.$on('deployEvent', async () => {
+                const isDeploymentProgress = await $wire.$call('checkDeployments');
+                if (isDeploymentProgress) {
+                    $wire.$dispatch('error',
+                        'There is a deployment in progress.<br><br>You can force deploy in the "Advanced" section.'
+                    );
+                    return;
+                }
+                window.dispatchEvent(new CustomEvent('startservice'));
+                $wire.$call('start');
+            });
+            $wire.$on('forceDeployEvent', () => {
+                window.dispatchEvent(new CustomEvent('startservice'));
+                $wire.$call('forceDeploy');
+            });
+            $wire.$on('restartEvent', async () => {
+                const isDeploymentProgress = await $wire.$call('checkDeployments');
+                if (isDeploymentProgress) {
+                    $wire.$dispatch('error',
+                        'There is a deployment in progress.<br><br>You can force deploy in the "Advanced" section.'
+                    );
+                    return;
+                }
                 $wire.$dispatch('info', 'Service restart in progress.');
                 $wire.$call('restart');
             });

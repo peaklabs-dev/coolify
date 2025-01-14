@@ -41,6 +41,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
+use Laravel\Horizon\Contracts\JobRepository;
 use Lcobucci\JWT\Encoding\ChainedFormatter;
 use Lcobucci\JWT\Encoding\JoseEncoder;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
@@ -1257,14 +1258,22 @@ function get_public_ips()
 
 function isAnyDeploymentInprogress()
 {
-    // Only use it in the deployment script
-    $count = ApplicationDeploymentQueue::whereIn('status', [ApplicationDeploymentStatus::IN_PROGRESS, ApplicationDeploymentStatus::QUEUED])->count();
-    if ($count > 0) {
-        echo "There are $count deployments in progress. Exiting...\n";
-        exit(1);
+    $runningJobs = ApplicationDeploymentQueue::where('horizon_job_worker', gethostname())->where('status', ApplicationDeploymentStatus::IN_PROGRESS->value)->get();
+    $horizonJobIds = [];
+    foreach ($runningJobs as $runningJob) {
+        $horizonJobStatus = getJobStatus($runningJob->horizon_job_id);
+        if ($horizonJobStatus === 'unknown') {
+            return true;
+        }
+        $horizonJobIds[] = $runningJob->horizon_job_id;
     }
-    echo "No deployments in progress.\n";
-    exit(0);
+    if (count($horizonJobIds) === 0) {
+        echo "No deployments in progress.\n";
+        exit(0);
+    }
+    $horizonJobIds = collect($horizonJobIds)->unique()->toArray();
+    echo 'There are '.count($horizonJobIds)." deployments in progress.\n";
+    exit(1);
 }
 
 function isBase64Encoded($strValue)
@@ -1990,7 +1999,17 @@ function parseDockerComposeFile(Service|Application $resource, bool $isNew = fal
                 } else {
                     $fqdns = collect(data_get($savedService, 'fqdns'))->filter();
                 }
-                $defaultLabels = defaultLabels($resource->id, $containerName, type: 'service', subType: $isDatabase ? 'database' : 'application', subId: $savedService->id);
+                $defaultLabels = defaultLabels(
+                    id: $resource->id,
+                    name: $containerName,
+                    projectName: $resource->project()->name,
+                    resourceName: $resource->name,
+                    type: 'service',
+                    subType: $isDatabase ? 'database' : 'application', 
+                    subId: $savedService->id,
+                    subName: $savedService->name,
+                    environment: $resource->environment->name,
+                );
                 $serviceLabels = $serviceLabels->merge($defaultLabels);
                 if (! $isDatabase && $fqdns->count() > 0) {
                     if ($fqdns) {
@@ -2818,7 +2837,16 @@ function parseDockerComposeFile(Service|Application $resource, bool $isNew = fal
                     }
                 }
             }
-            $defaultLabels = defaultLabels($resource->id, $containerName, $pull_request_id, type: 'application');
+
+            $defaultLabels = defaultLabels(
+                id: $resource->id,
+                name: $containerName,
+                projectName: $resource->project()->name,
+                resourceName: $resource->name,
+                environment: $resource->environment->name,
+                pull_request_id: $pull_request_id,
+                type: 'application'
+            );
             $serviceLabels = $serviceLabels->merge($defaultLabels);
 
             if ($server->isLogDrainEnabled()) {
@@ -3612,11 +3640,15 @@ function newParser(Application|Service $resource, int $pull_request_id = 0, ?int
                     }
                 }
             }
+
             $defaultLabels = defaultLabels(
                 id: $resource->id,
                 name: $containerName,
+                projectName: $resource->project()->name,
+                resourceName: $resource->name,
                 pull_request_id: $pullRequestId,
-                type: 'application'
+                type: 'application',
+                environment: $resource->environment->name,
             );
         } elseif ($isService) {
             if ($savedService->serviceType()) {
@@ -3624,7 +3656,18 @@ function newParser(Application|Service $resource, int $pull_request_id = 0, ?int
             } else {
                 $fqdns = collect(data_get($savedService, 'fqdns'))->filter();
             }
-            $defaultLabels = defaultLabels($resource->id, $containerName, type: 'service', subType: $isDatabase ? 'database' : 'application', subId: $savedService->id);
+
+            $defaultLabels = defaultLabels(
+                id: $resource->id,
+                name: $containerName,
+                projectName: $resource->project()->name,
+                resourceName: $resource->name,
+                type: 'service',
+                subType: $isDatabase ? 'database' : 'application',
+                subId: $savedService->id,
+                subName: $savedService->human_name ?? $savedService->name,
+                environment: $resource->environment->name,
+            );
         }
         // Add COOLIFY_FQDN & COOLIFY_URL to environment
         if (! $isDatabase && $fqdns instanceof Collection && $fqdns->count() > 0) {
@@ -4089,4 +4132,17 @@ function convertGitUrl(string $gitRepository, string $deploymentType, ?GithubApp
         'repository' => $repository,
         'port' => $providerInfo['port'],
     ];
+}
+
+function getJobStatus(?string $jobId = null)
+{
+    if (blank($jobId)) {
+        return 'unknown';
+    }
+    $jobFound = app(JobRepository::class)->getJobs([$jobId]);
+    if ($jobFound->isEmpty()) {
+        return 'unknown';
+    }
+
+    return $jobFound->first()->status;
 }

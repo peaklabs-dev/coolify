@@ -6,7 +6,7 @@ use App\Models\Service;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Symfony\Component\Yaml\Yaml;
 
-class StartService
+class DeployService
 {
     use AsAction;
 

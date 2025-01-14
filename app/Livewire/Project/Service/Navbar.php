@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Project\Service;
 
-use App\Actions\Service\StartService;
+use App\Actions\Service\DeployService;
+use App\Actions\Service\RestartService;
 use App\Actions\Service\StopService;
 use App\Actions\Shared\PullImage;
 use App\Enums\ProcessStatus;
@@ -83,10 +84,18 @@ class Navbar extends Component
         return $this->isDeploymentProgress;
     }
 
-    public function start()
+    public function deploy()
     {
+        $this->checkDeployments();
+        if ($this->isDeploymentProgress) {
+            $this->dispatch('error', 'There is a already a deployment in progress for this service.');
+
+            return;
+        }
+
+        StopService::run(service: $this->service, dockerCleanup: false);
         $this->service->parse();
-        $activity = StartService::run($this->service);
+        $activity = DeployService::run($this->service);
         $this->dispatch('activityMonitor', $activity->id);
     }
 
@@ -123,17 +132,8 @@ class Navbar extends Component
 
     public function restart()
     {
-        $this->checkDeployments();
-        if ($this->isDeploymentProgress) {
-            $this->dispatch('error', 'There is a deployment in progress.');
-
-            return;
-        }
-        StopService::run(service: $this->service, dockerCleanup: false);
-        $this->service->parse();
-        $this->dispatch('imagePulled');
-        $activity = StartService::run($this->service);
-        $this->dispatch('activityMonitor', $activity->id);
+        RestartService::run($this->service);
+        ServiceStatusChanged::dispatch();
     }
 
     public function pullAndRestartEvent()
@@ -147,8 +147,7 @@ class Navbar extends Component
         PullImage::run($this->service);
         StopService::run(service: $this->service, dockerCleanup: false);
         $this->service->parse();
-        $this->dispatch('imagePulled');
-        $activity = StartService::run($this->service);
+        $activity = DeployService::run($this->service);
         $this->dispatch('activityMonitor', $activity->id);
     }
 

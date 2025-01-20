@@ -26,3 +26,4 @@ jobs:
           args: --output CHANGELOG.md
         env:
           OUTPUT: CHANGELOG.md
+

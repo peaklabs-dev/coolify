@@ -34,6 +34,8 @@ class InstanceSettings extends Model implements SendsEmail
         'auto_update_frequency' => 'string',
         'update_check_frequency' => 'string',
         'sentinel_token' => 'encrypted',
+        'source_instance_migration_api_token' => 'encrypted',
+        'migration_enabled' => 'boolean',
     ];
 
     protected static function booted(): void

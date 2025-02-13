@@ -21,6 +21,10 @@
                 href="{{ route('settings.oauth') }}">
                 <button>OAuth</button>
             </a>
+            <a class="{{ request()->routeIs('settings.migration') ? 'dark:text-white' : '' }}" wire:navigate
+                href="{{ route('settings.migration') }}">
+                <button>Migration</button>
+            </a>
             <div class="flex-1"></div>
         </nav>
     </div>

@@ -52,6 +52,7 @@ use App\Livewire\Server\Proxy\Show as ProxyShow;
 use App\Livewire\Server\Resources as ResourcesShow;
 use App\Livewire\Server\Show as ServerShow;
 use App\Livewire\Settings\Index as SettingsIndex;
+use App\Livewire\Settings\Migration;
 use App\Livewire\SettingsBackup;
 use App\Livewire\SettingsEmail;
 use App\Livewire\SettingsOauth;
@@ -123,6 +124,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings/backup', SettingsBackup::class)->name('settings.backup');
     Route::get('/settings/email', SettingsEmail::class)->name('settings.email');
     Route::get('/settings/oauth', SettingsOauth::class)->name('settings.oauth');
+    Route::get('/settings/migration', Migration::class)->name('settings.migration');
 
     Route::get('/profile', ProfileIndex::class)->name('profile');
 

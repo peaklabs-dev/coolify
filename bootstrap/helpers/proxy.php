@@ -144,7 +144,7 @@ function generate_default_proxy_configuration(Server $server)
             'traefik.enable=true',
             'traefik.http.routers.traefik.entrypoints=http',
             'traefik.http.routers.traefik.service=api@internal',
-            'traefik.http.services.traefik.loadbalancer.server.port=8080',
+            'traefik.http.services.traefik.loadbalancer.server.port=8000',
             'coolify.managed=true',
             'coolify.proxy=true',
         ];

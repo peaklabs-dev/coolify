@@ -363,7 +363,7 @@ class Server extends BaseModel
                                 'loadBalancer' => [
                                     'servers' => [
                                         0 => [
-                                            'url' => 'http://coolify:8080',
+                                            'url' => 'http://coolify:8000',
                                         ],
                                     ],
                                 ],
@@ -461,7 +461,7 @@ $schema://$host {
     handle /terminal/ws {
         reverse_proxy coolify-realtime:6002
     }
-    reverse_proxy coolify:8080
+    reverse_proxy coolify:8000
 }";
                 $base64 = base64_encode($caddy_file);
                 instant_remote_process([

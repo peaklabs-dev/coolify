@@ -22,11 +22,11 @@ services:
     env_file:
       - /data/coolify/source/.env
     ports:
-      - "${APP_PORT:-8000}:8080"
+      - "${APP_PORT:-8000}:8000"
     expose:
       - "${APP_PORT:-8000}"
     healthcheck:
-      test: curl --fail http://127.0.0.1:8080/api/health || exit 1
+      test: curl --fail http://127.0.0.1:8000/api/health || exit 1
       interval: 5s
       retries: 10
       timeout: 2s

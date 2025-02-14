@@ -12,6 +12,14 @@
             </div>
 
             @if($migration_enabled)
+            @if(!$is_api_enabled)
+            <div class="mt-4 p-4 bg-warning/10 border border-warning text-warning rounded-md">
+                <p class="font-bold">API is not enabled</p>
+                <p>To migrate to or from this instance, you need to enable the API on this and the target instance.
+                    <a href="{{ route('settings.index') }}" class="underline hover:text-error/80">Configuration settings</a>.
+                </p>
+            </div>
+            @else
             <div class="flex flex-col gap-2 pt-6">
                 <div class="flex gap-4 items-center">
                     <button type="button" wire:click="$set('migration_direction', 'from')" class="px-4 py-2 rounded-md {{ $migration_direction === 'from' ? 'bg-coollabs text-white' : 'bg-coolgray-100 dark:bg-coolgray-700 dark:text-white' }}">
@@ -22,16 +30,7 @@
                     </button>
                 </div>
 
-                @if(!$is_api_enabled)
-                <div class="mt-4 p-4 bg-error/10 border border-error text-error rounded-md">
-                    <p class="font-bold">API is not enabled</p>
-                    <p>To migrate TO or FROM this instance, you need to enable the API on this and the target instance.
-                        <a href="{{ route('settings.index') }}" class="underline hover:text-error/80">Configuration settings</a>.
-                    </p>
-                </div>
-                @endif
-
-                @if($migration_direction === 'to')
+                @if($migration_direction === 'to' && $is_api_enabled)
                 <div class="flex flex-wrap items-end gap-2 mt-4">
                     <div class="flex gap-2 md:flex-row flex-col w-full">
                         <div class="md:w-2/5">
@@ -84,11 +83,11 @@
                             @endif
                             @foreach($migration_messages as $message)
                             <div class="flex items-center gap-2 p-2 text-sm rounded {{ 
-                                    $message['type'] === 'success' ? 'bg-success/5 dark:bg-success/10' : 
-                                    ($message['type'] === 'error' ? 'bg-error/5 dark:bg-error/10' : 
-                                    ($message['type'] === 'warning' ? 'bg-warning/5 dark:bg-warning/10' : 
-                                    'bg-info/5 dark:bg-info/10')) 
-                                }}">
+                                        $message['type'] === 'success' ? 'bg-success/5 dark:bg-success/10' : 
+                                        ($message['type'] === 'error' ? 'bg-error/5 dark:bg-error/10' : 
+                                        ($message['type'] === 'warning' ? 'bg-warning/5 dark:bg-warning/10' : 
+                                        'bg-info/5 dark:bg-info/10')) 
+                                    }}">
                                 @if($message['type'] === 'success')
                                 <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0 w-4 h-4 text-success-600 dark:text-success-400" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -122,6 +121,7 @@
                 </div>
                 @endif
             </div>
+            @endif
             @endif
         </div>
 </div>

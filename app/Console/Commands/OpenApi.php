@@ -13,21 +13,28 @@ class OpenApi extends Command
 
     public function handle()
     {
-        // Generate OpenAPI documentation
-        echo "Generating OpenAPI documentation.\n";
-        // https://github.com/OAI/OpenAPI-Specification/releases
+        echo "Generating OpenAPI YAML.\n";
         $process = Process::run([
             '/var/www/html/vendor/bin/openapi',
             'app',
             '-o',
             'openapi.yaml',
             '--version',
-            '3.1.0',
+            '3.1.0', // https://github.com/OAI/OpenAPI-Specification/releases
         ]);
-        $error = $process->errorOutput();
-        $error = preg_replace('/^.*an object literal,.*$/m', '', $error);
-        $error = preg_replace('/^\h*\v+/m', '', $error);
-        echo $error;
+        echo $process->errorOutput();
+        echo $process->output();
+
+        echo "\nGenerating OpenAPI JSON.\n";
+        $process = Process::run([
+            '/var/www/html/vendor/bin/openapi',
+            'app',
+            '-o',
+            'openapi.json',
+            '--version',
+            '3.1.0', // https://github.com/OAI/OpenAPI-Specification/releases
+        ]);
+        echo $process->errorOutput();
         echo $process->output();
     }
 }

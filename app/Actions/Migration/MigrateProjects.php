@@ -40,16 +40,32 @@ class MigrateProjects
 
             foreach ($projects as $project) {
                 try {
-                    $payload = [
+                    $environments = [];
+                    if (isset($project['environments']) && is_array($project['environments'])) {
+                        foreach ($project['environments'] as $environment) {
+                            $environments[] = [
+                                'name' => $environment['name'],
+                                'description' => $environment['description'] ?? null,
+                            ];
+                        }
+                        event(new MigrationStatusUpdate(
+                            message: 'Found '.count($environments)." environments to migrate for project: {$project['name']}",
+                            type: 'info',
+                            teamId: $teamId
+                        ));
+                    }
+
+                    $projectPayload = [
                         'name' => $project['name'],
                         'description' => $project['description'],
+                        'environments' => $environments,
                     ];
 
                     $targetResponse = Http::withToken($targetToken)
                         ->withHeaders([
                             'Content-Type' => 'application/json',
                         ])
-                        ->post("{$targetUrl}/api/v1/projects", $payload);
+                        ->post("{$targetUrl}/api/v1/projects", $projectPayload);
 
                     if ($targetResponse->status() !== 201) {
                         $hasErrors = true;
@@ -82,20 +98,20 @@ class MigrateProjects
 
             if (! $hasErrors) {
                 event(new MigrationStatusUpdate(
-                    message: 'All projects have been migrated successfully.',
+                    message: 'All projects and their environments have been migrated successfully.',
                     type: 'success',
                     teamId: $teamId
                 ));
             } else {
                 event(new MigrationStatusUpdate(
-                    message: 'Projects migration has been completed with errors.',
+                    message: 'Projects and environments migration has been completed with errors.',
                     type: 'warning',
                     teamId: $teamId
                 ));
             }
         } catch (\Exception $e) {
             event(new MigrationStatusUpdate(
-                message: 'Projects migration failed: '.$e->getMessage(),
+                message: 'Projects and environments migration failed: '.$e->getMessage(),
                 type: 'error',
                 teamId: $teamId
             ));

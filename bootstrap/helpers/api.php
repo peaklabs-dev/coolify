@@ -31,18 +31,16 @@ function serializeApiResponse($data)
         }
 
         $ordered = collect();
+        $fields = ['id', 'uuid', 'name', 'description', 'team_id', 'project_id', 'created_at', 'updated_at'];
 
-        $ordered['id'] = $d['id'] ?? null;
-        $ordered['uuid'] = $d['uuid'] ?? null;
-        $ordered['name'] = $d['name'] ?? null;
-        $ordered['description'] = $d['description'] ?? null;
-        $ordered['team_id'] = $d['team_id'] ?? null;
-        $ordered['project_id'] = $d['project_id'] ?? null;
-        $ordered['created_at'] = $d['created_at'] ?? null;
-        $ordered['updated_at'] = $d['updated_at'] ?? null;
+        foreach ($fields as $field) {
+            if (isset($d[$field])) {
+                $ordered[$field] = $d[$field];
+            }
+        }
 
         foreach ($d as $key => $value) {
-            if (! in_array($key, ['id', 'uuid', 'name', 'description', 'team_id', 'project_id', 'created_at', 'updated_at'])) {
+            if (! in_array($key, $fields)) {
                 $ordered[$key] = $value;
             }
         }

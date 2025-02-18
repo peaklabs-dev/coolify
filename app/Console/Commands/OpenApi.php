@@ -9,7 +9,7 @@ class OpenApi extends Command
 {
     protected $signature = 'openapi';
 
-    protected $description = 'Generate OpenApi file.';
+    protected $description = 'Generate OpenApi json and yaml files.';
 
     public function handle()
     {

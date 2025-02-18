@@ -9,14 +9,14 @@ use Visus\Cuid2\Cuid2;
     description: 'Project model',
     type: 'object',
     properties: [
-        'id' => ['type' => 'integer'],
-        'uuid' => ['type' => 'string'],
-        'name' => ['type' => 'string'],
-        'description' => ['type' => 'string'],
-        'team_id' => ['type' => 'integer'],
-        'created_at' => ['type' => 'string'],
-        'updated_at' => ['type' => 'string'],
-        'environments' => new OA\Property(
+        new OA\Property(property: 'id', type: 'integer'),
+        new OA\Property(property: 'uuid', type: 'string'),
+        new OA\Property(property: 'name', type: 'string'),
+        new OA\Property(property: 'description', type: 'string'),
+        new OA\Property(property: 'team_id', type: 'integer'),
+        new OA\Property(property: 'created_at', type: 'string'),
+        new OA\Property(property: 'updated_at', type: 'string'),
+        new OA\Property(
             property: 'environments',
             type: 'array',
             items: new OA\Items(ref: '#/components/schemas/Environment'),
@@ -36,18 +36,16 @@ class Project extends BaseModel
     protected static function booted()
     {
         static::created(function ($project) {
-            ProjectSetting::create([
-                'project_id' => $project->id,
-            ]);
-            Environment::create([
-                'name' => 'production',
-                'project_id' => $project->id,
-                'uuid' => (string) new Cuid2,
-            ]);
+            if ($project->environments->isEmpty()) {
+                Environment::create([
+                    'name' => 'production',
+                    'project_id' => $project->id,
+                    'uuid' => (string) new Cuid2,
+                ]);
+            }
         });
         static::deleting(function ($project) {
             $project->environments()->delete();
-            $project->settings()->delete();
             $shared_variables = $project->environment_variables();
             foreach ($shared_variables as $shared_variable) {
                 $shared_variable->delete();

@@ -5,6 +5,7 @@ use App\Enums\RedirectTypes;
 use App\Enums\StaticImageTypes;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Validation\Rule;
 
 function getTeamIdFromToken()
@@ -20,63 +21,40 @@ function invalidTokenResponse()
 
 function serializeApiResponse($data)
 {
-    if ($data instanceof Collection) {
-        return $data->map(function ($d) {
-            $d = collect($d)->sortKeys();
-            $created_at = data_get($d, 'created_at');
-            $updated_at = data_get($d, 'updated_at');
-            if ($created_at) {
-                unset($d['created_at']);
-                $d['created_at'] = $created_at;
-            }
-            if ($updated_at) {
-                unset($d['updated_at']);
-                $d['updated_at'] = $updated_at;
-            }
-            if (data_get($d, 'name')) {
-                $d = $d->prepend($d['name'], 'name');
-            }
-            if (data_get($d, 'description')) {
-                $d = $d->prepend($d['description'], 'description');
-            }
-            if (data_get($d, 'uuid')) {
-                $d = $d->prepend($d['uuid'], 'uuid');
-            }
+    $orderFields = function ($item) use (&$orderFields) {
+        $d = collect($item);
 
-            if (! is_null(data_get($d, 'id'))) {
-                $d = $d->prepend($d['id'], 'id');
+        foreach ($d as $key => $value) {
+            if (is_array($value) || $value instanceof Collection || $value instanceof SupportCollection) {
+                $d[$key] = collect($value)->map(fn ($i) => $orderFields($i));
             }
-
-            return $d;
-        });
-    } else {
-        $d = collect($data)->sortKeys();
-        $created_at = data_get($d, 'created_at');
-        $updated_at = data_get($d, 'updated_at');
-        if ($created_at) {
-            unset($d['created_at']);
-            $d['created_at'] = $created_at;
-        }
-        if ($updated_at) {
-            unset($d['updated_at']);
-            $d['updated_at'] = $updated_at;
-        }
-        if (data_get($d, 'name')) {
-            $d = $d->prepend($d['name'], 'name');
-        }
-        if (data_get($d, 'description')) {
-            $d = $d->prepend($d['description'], 'description');
-        }
-        if (data_get($d, 'uuid')) {
-            $d = $d->prepend($d['uuid'], 'uuid');
         }
 
-        if (! is_null(data_get($d, 'id'))) {
-            $d = $d->prepend($d['id'], 'id');
+        $ordered = collect();
+
+        $ordered['id'] = $d['id'] ?? null;
+        $ordered['uuid'] = $d['uuid'] ?? null;
+        $ordered['name'] = $d['name'] ?? null;
+        $ordered['description'] = $d['description'] ?? null;
+        $ordered['team_id'] = $d['team_id'] ?? null;
+        $ordered['project_id'] = $d['project_id'] ?? null;
+        $ordered['created_at'] = $d['created_at'] ?? null;
+        $ordered['updated_at'] = $d['updated_at'] ?? null;
+
+        foreach ($d as $key => $value) {
+            if (! in_array($key, ['id', 'uuid', 'name', 'description', 'team_id', 'project_id', 'created_at', 'updated_at'])) {
+                $ordered[$key] = $value;
+            }
         }
 
-        return $d;
+        return $ordered;
+    };
+
+    if ($data instanceof Collection || is_array($data)) {
+        return collect($data)->map(fn ($item) => $orderFields($item));
     }
+
+    return $orderFields($data);
 }
 
 function sharedDataApplications()

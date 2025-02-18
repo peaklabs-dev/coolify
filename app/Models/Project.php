@@ -13,6 +13,9 @@ use Visus\Cuid2\Cuid2;
         'uuid' => ['type' => 'string'],
         'name' => ['type' => 'string'],
         'description' => ['type' => 'string'],
+        'team_id' => ['type' => 'integer'],
+        'created_at' => ['type' => 'string'],
+        'updated_at' => ['type' => 'string'],
         'environments' => new OA\Property(
             property: 'environments',
             type: 'array',

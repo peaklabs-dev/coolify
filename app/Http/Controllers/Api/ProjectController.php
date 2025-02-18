@@ -10,8 +10,8 @@ use OpenApi\Attributes as OA;
 class ProjectController extends Controller
 {
     #[OA\Get(
-        summary: 'List',
-        description: 'List projects.',
+        summary: 'List Projects',
+        description: 'List all projects with their environments.',
         path: '/projects',
         operationId: 'list-projects',
         security: [
@@ -21,7 +21,7 @@ class ProjectController extends Controller
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Get all projects.',
+                description: 'Get all projects with their environments.',
                 content: [
                     new OA\MediaType(
                         mediaType: 'application/json',
@@ -30,14 +30,19 @@ class ProjectController extends Controller
                             items: new OA\Items(ref: '#/components/schemas/Project')
                         )
                     ),
-                ]),
+                ]
+            ),
+            new OA\Response(
+                response: 400,
+                ref: '#/components/responses/400',
+            ),
             new OA\Response(
                 response: 401,
                 ref: '#/components/responses/401',
             ),
             new OA\Response(
-                response: 400,
-                ref: '#/components/responses/400',
+                response: 404,
+                ref: '#/components/responses/404',
             ),
         ]
     )]
@@ -47,10 +52,12 @@ class ProjectController extends Controller
         if (is_null($teamId)) {
             return invalidTokenResponse();
         }
-        $projects = Project::whereTeamId($teamId)->select('id', 'name', 'description', 'uuid')->get();
+        $projects = Project::whereTeamId($teamId)
+            ->select('id', 'uuid', 'name', 'description', 'team_id', 'created_at', 'updated_at')
+            ->with('environments')
+            ->get();
 
-        return response()->json(serializeApiResponse($projects),
-        );
+        return response()->json(serializeApiResponse($projects));
     }
 
     #[OA\Get(
@@ -69,7 +76,8 @@ class ProjectController extends Controller
             new OA\Response(
                 response: 200,
                 description: 'Project details',
-                content: new OA\JsonContent(ref: '#/components/schemas/Project')),
+                content: new OA\JsonContent(ref: '#/components/schemas/Project')
+            ),
             new OA\Response(
                 response: 401,
                 ref: '#/components/responses/401',
@@ -119,7 +127,8 @@ class ProjectController extends Controller
             new OA\Response(
                 response: 200,
                 description: 'Environment details',
-                content: new OA\JsonContent(ref: '#/components/schemas/Environment')),
+                content: new OA\JsonContent(ref: '#/components/schemas/Environment')
+            ),
             new OA\Response(
                 response: 401,
                 ref: '#/components/responses/401',
@@ -199,7 +208,8 @@ class ProjectController extends Controller
                             ]
                         )
                     ),
-                ]),
+                ]
+            ),
             new OA\Response(
                 response: 401,
                 ref: '#/components/responses/401',
@@ -297,7 +307,8 @@ class ProjectController extends Controller
                             ]
                         )
                     ),
-                ]),
+                ]
+            ),
             new OA\Response(
                 response: 401,
                 ref: '#/components/responses/401',
@@ -398,7 +409,8 @@ class ProjectController extends Controller
                             ]
                         )
                     ),
-                ]),
+                ]
+            ),
             new OA\Response(
                 response: 401,
                 ref: '#/components/responses/401',

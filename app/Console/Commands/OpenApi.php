@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Process;
 
 class OpenApi extends Command
 {
-    protected $signature = 'openapi';
+    protected $signature = 'openapi:generate';
 
     protected $description = 'Generate OpenApi json and yaml files.';
 

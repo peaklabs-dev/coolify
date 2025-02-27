@@ -10,28 +10,29 @@ use OpenApi\Attributes as OA;
 class OtherController extends Controller
 {
     #[OA\Get(
-        summary: 'Version',
+        summary: 'Coolify Version',
         description: 'Get Coolify version.',
         path: '/version',
         operationId: 'version',
         security: [
             ['bearerAuth' => []],
         ],
+        tags: ['Miscellaneous'],
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Returns the version of the application',
+                description: 'Returns the version of Coolify.',
                 content: new OA\JsonContent(
                     type: 'string',
                     example: 'v4.0.0',
                 )),
             new OA\Response(
-                response: 401,
-                ref: '#/components/responses/401',
-            ),
-            new OA\Response(
                 response: 400,
                 ref: '#/components/responses/400',
+            ),
+            new OA\Response(
+                response: 401,
+                ref: '#/components/responses/401',
             ),
         ]
     )]
@@ -48,6 +49,7 @@ class OtherController extends Controller
         security: [
             ['bearerAuth' => []],
         ],
+        tags: ['API'],
         responses: [
             new OA\Response(
                 response: 200,
@@ -59,6 +61,14 @@ class OtherController extends Controller
                     ]
                 )),
             new OA\Response(
+                response: 400,
+                ref: '#/components/responses/400',
+            ),
+            new OA\Response(
+                response: 401,
+                ref: '#/components/responses/401',
+            ),
+            new OA\Response(
                 response: 403,
                 description: 'You are not allowed to enable the API.',
                 content: new OA\JsonContent(
@@ -67,14 +77,6 @@ class OtherController extends Controller
                         new OA\Property(property: 'message', type: 'string', example: 'You are not allowed to enable the API.'),
                     ]
                 )),
-            new OA\Response(
-                response: 401,
-                ref: '#/components/responses/401',
-            ),
-            new OA\Response(
-                response: 400,
-                ref: '#/components/responses/400',
-            ),
         ]
     )]
     public function enable_api(Request $request)
@@ -100,6 +102,7 @@ class OtherController extends Controller
         security: [
             ['bearerAuth' => []],
         ],
+        tags: ['API'],
         responses: [
             new OA\Response(
                 response: 200,
@@ -111,6 +114,14 @@ class OtherController extends Controller
                     ]
                 )),
             new OA\Response(
+                response: 400,
+                ref: '#/components/responses/400',
+            ),
+            new OA\Response(
+                response: 401,
+                ref: '#/components/responses/401',
+            ),
+            new OA\Response(
                 response: 403,
                 description: 'You are not allowed to disable the API.',
                 content: new OA\JsonContent(
@@ -119,14 +130,6 @@ class OtherController extends Controller
                         new OA\Property(property: 'message', type: 'string', example: 'You are not allowed to disable the API.'),
                     ]
                 )),
-            new OA\Response(
-                response: 401,
-                ref: '#/components/responses/401',
-            ),
-            new OA\Response(
-                response: 400,
-                ref: '#/components/responses/400',
-            ),
         ]
     )]
     public function disable_api(Request $request)
@@ -162,6 +165,7 @@ class OtherController extends Controller
         description: 'Healthcheck endpoint.',
         path: '/health',
         operationId: 'healthcheck',
+        tags: ['Miscellaneous'],
         responses: [
             new OA\Response(
                 response: 200,
@@ -171,12 +175,12 @@ class OtherController extends Controller
                     example: 'OK',
                 )),
             new OA\Response(
-                response: 401,
-                ref: '#/components/responses/401',
-            ),
-            new OA\Response(
                 response: 400,
                 ref: '#/components/responses/400',
+            ),
+            new OA\Response(
+                response: 401,
+                ref: '#/components/responses/401',
             ),
         ]
     )]

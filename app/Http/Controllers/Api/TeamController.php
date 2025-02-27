@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Team;
+use App\Models\User;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -24,6 +26,27 @@ class TeamController extends Controller
         }
 
         return serializeApiResponse($team);
+    }
+
+    /**
+     * Format members data to include role directly on the member object
+     * and remove unnecessary pivot data
+     */
+    private function formatMembersData($team)
+    {
+        if (isset($team->members) && count($team->members) > 0) {
+            $team->members->transform(function ($member) {
+                if (isset($member->pivot) && isset($member->pivot->role)) {
+                    $member->role = $member->pivot->role;
+                }
+
+                $member->makeHidden(['pivot']);
+
+                return $member;
+            });
+        }
+
+        return $team;
     }
 
     #[OA\Get(
@@ -64,7 +87,13 @@ class TeamController extends Controller
         if (is_null($teamId)) {
             return invalidTokenResponse();
         }
-        $teams = auth()->user()->teams->sortBy('id');
+        $teams = request()->user()->teams->sortBy('id');
+
+        foreach ($teams as $team) {
+            $team->load('members');
+            $this->formatMembersData($team);
+        }
+
         $teams = $teams->map(function ($team) {
             return $this->removeSensitiveData($team);
         });
@@ -113,11 +142,15 @@ class TeamController extends Controller
         if (is_null($teamId)) {
             return invalidTokenResponse();
         }
-        $teams = auth()->user()->teams;
+        $teams = request()->user()->teams;
         $team = $teams->where('id', $id)->first();
         if (is_null($team)) {
             return response()->json(['message' => 'Team not found.'], 404);
         }
+
+        $team->load('members');
+        $this->formatMembersData($team);
+
         $team = $this->removeSensitiveData($team);
 
         return response()->json(
@@ -126,7 +159,7 @@ class TeamController extends Controller
     }
 
     #[OA\Get(
-        summary: 'Members',
+        summary: 'List Members',
         description: 'Get members by TeamId.',
         path: '/teams/{id}/members',
         operationId: 'get-members-by-team-id',
@@ -171,18 +204,17 @@ class TeamController extends Controller
         if (is_null($teamId)) {
             return invalidTokenResponse();
         }
-        $teams = auth()->user()->teams;
+        $teams = request()->user()->teams;
         $team = $teams->where('id', $id)->first();
         if (is_null($team)) {
             return response()->json(['message' => 'Team not found.'], 404);
         }
-        $members = $team->members;
-        $members->makeHidden([
-            'pivot',
-        ]);
+
+        $team->load('members');
+        $this->formatMembersData($team);
 
         return response()->json(
-            serializeApiResponse($members),
+            serializeApiResponse($team->members),
         );
     }
 
@@ -216,7 +248,10 @@ class TeamController extends Controller
         if (is_null($teamId)) {
             return invalidTokenResponse();
         }
-        $team = auth()->user()->currentTeam();
+        $team = request()->user()->currentTeam();
+
+        $team->load('members');
+        $this->formatMembersData($team);
 
         return response()->json(
             $this->removeSensitiveData($team),
@@ -261,10 +296,9 @@ class TeamController extends Controller
         if (is_null($teamId)) {
             return invalidTokenResponse();
         }
-        $team = auth()->user()->currentTeam();
-        $team->members->makeHidden([
-            'pivot',
-        ]);
+        $team = request()->user()->currentTeam();
+        $team->load('members');
+        $this->formatMembersData($team);
 
         return response()->json(
             serializeApiResponse($team->members),
@@ -287,6 +321,18 @@ class TeamController extends Controller
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'My Team'),
                     new OA\Property(property: 'description', type: 'string', example: 'My team description'),
+                    new OA\Property(
+                        property: 'members',
+                        type: 'array',
+                        description: 'Array of members to add to the team',
+                        items: new OA\Items(
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'user_id', type: 'integer', example: 1),
+                                new OA\Property(property: 'role', type: 'string', example: 'admin', enum: ['admin', 'member', 'owner']),
+                            ]
+                        )
+                    ),
                 ]
             )
         ),
@@ -304,6 +350,10 @@ class TeamController extends Controller
                 response: 400,
                 ref: '#/components/responses/400',
             ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation failed.',
+            ),
         ]
     )]
     public function store(Request $request)
@@ -316,15 +366,71 @@ class TeamController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'members' => 'nullable|array',
+            'members.*.user_id' => 'required|integer|exists:users,id',
+            'members.*.role' => 'required|string|in:admin,member,owner',
         ]);
 
-        $team = new \App\Models\Team;
+        $team = new Team;
         $team->name = $request->name;
         $team->description = $request->description;
         $team->personal_team = false;
         $team->save();
 
-        auth()->user()->teams()->attach($team, ['role' => 'owner']);
+        $ownersInMembers = [];
+        if ($request->has('members') && is_array($request->members)) {
+            foreach ($request->members as $member) {
+                if (isset($member['role']) && $member['role'] === 'owner' && isset($member['user_id'])) {
+                    $ownersInMembers[] = $member['user_id'];
+                }
+            }
+        }
+
+        if (count($ownersInMembers) > 1) {
+            $team->delete();
+
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => [
+                    'members' => ['Only one owner can be assigned to a team.'],
+                ],
+            ], 422);
+        } elseif (count($ownersInMembers) === 1) {
+            $ownerId = $ownersInMembers[0];
+            $owner = User::find($ownerId);
+            if ($owner) {
+                $owner->teams()->attach($team, ['role' => 'owner']);
+
+                if ($ownerId !== request()->user()->id) {
+                    request()->user()->teams()->attach($team, ['role' => 'admin']);
+                }
+            }
+        } else {
+            $ownersInMembers[] = request()->user()->id;
+            request()->user()->teams()->attach($team, ['role' => 'owner']);
+        }
+
+        if ($request->has('members') && is_array($request->members)) {
+            foreach ($request->members as $member) {
+                if (isset($member['user_id']) && isset($member['role'])) {
+                    $userId = $member['user_id'];
+                    $role = $member['role'];
+
+                    if (($role === 'owner' && in_array($userId, $ownersInMembers)) ||
+                        (count($ownersInMembers) === 0 && $userId === request()->user()->id)) {
+                        continue;
+                    }
+
+                    $user = User::find($userId);
+                    if ($user && $user->id !== request()->user()->id) {
+                        $user->teams()->attach($team, ['role' => $role]);
+                    }
+                }
+            }
+        }
+
+        $team->load('members');
+        $this->formatMembersData($team);
 
         return response()->json(
             $this->removeSensitiveData($team),

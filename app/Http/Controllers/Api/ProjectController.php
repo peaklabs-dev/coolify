@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
 class ProjectController extends Controller
 {
     #[OA\Get(
-        summary: 'List Projects',
+        summary: 'List',
         description: 'List all projects with their environments.',
         path: '/projects',
         operationId: 'list-projects',
@@ -98,82 +98,24 @@ class ProjectController extends Controller
         if (is_null($teamId)) {
             return invalidTokenResponse();
         }
-        $project = Project::whereTeamId($teamId)->whereUuid(request()->uuid)->first();
+        $project = Project::whereTeamId($teamId)
+            ->whereUuid(request()->uuid)
+            ->select('id', 'uuid', 'name', 'description', 'team_id', 'created_at', 'updated_at')
+            ->with('environments')
+            ->first();
+
         if (! $project) {
             return response()->json(['message' => 'Project not found.'], 404);
         }
-
-        $project->load(['environments']);
 
         return response()->json(
             serializeApiResponse($project),
         );
     }
 
-    #[OA\Get(
-        summary: 'Environment',
-        description: 'Get environment by name or UUID.',
-        path: '/projects/{uuid}/{environment_name_or_uuid}',
-        operationId: 'get-environment-by-name-or-uuid',
-        security: [
-            ['bearerAuth' => []],
-        ],
-        tags: ['Projects'],
-        parameters: [
-            new OA\Parameter(name: 'uuid', in: 'path', required: true, description: 'Project UUID', schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'environment_name_or_uuid', in: 'path', required: true, description: 'Environment name or UUID', schema: new OA\Schema(type: 'string')),
-        ],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'Environment details',
-                content: new OA\JsonContent(ref: '#/components/schemas/Environment')
-            ),
-            new OA\Response(
-                response: 401,
-                ref: '#/components/responses/401',
-            ),
-            new OA\Response(
-                response: 400,
-                ref: '#/components/responses/400',
-            ),
-            new OA\Response(
-                response: 404,
-                ref: '#/components/responses/404',
-            ),
-        ]
-    )]
-    public function environment_details(Request $request)
-    {
-        $teamId = getTeamIdFromToken();
-        if (is_null($teamId)) {
-            return invalidTokenResponse();
-        }
-        if (! $request->uuid) {
-            return response()->json(['message' => 'UUID is required.'], 422);
-        }
-        if (! $request->environment_name_or_uuid) {
-            return response()->json(['message' => 'Environment name or UUID is required.'], 422);
-        }
-        $project = Project::whereTeamId($teamId)->whereUuid($request->uuid)->first();
-        if (! $project) {
-            return response()->json(['message' => 'Project not found.'], 404);
-        }
-        $environment = $project->environments()->whereName($request->environment_name_or_uuid)->first();
-        if (! $environment) {
-            $environment = $project->environments()->whereUuid($request->environment_name_or_uuid)->first();
-        }
-        if (! $environment) {
-            return response()->json(['message' => 'Environment not found.'], 404);
-        }
-        $environment = $environment->load(['applications', 'postgresqls', 'redis', 'mongodbs', 'mysqls', 'mariadbs', 'services']);
-
-        return response()->json(serializeApiResponse($environment));
-    }
-
     #[OA\Post(
         summary: 'Create',
-        description: 'Create Project.',
+        description: 'Create project with its environments.',
         path: '/projects',
         operationId: 'create-project',
         security: [
@@ -190,6 +132,17 @@ class ProjectController extends Controller
                     properties: [
                         'name' => ['type' => 'string', 'description' => 'The name of the project.'],
                         'description' => ['type' => 'string', 'description' => 'The description of the project.'],
+                        'environments' => [
+                            'type' => 'array',
+                            'description' => 'Array of environments to create',
+                            'items' => new OA\Schema(
+                                type: 'object',
+                                properties: [
+                                    'name' => ['type' => 'string', 'description' => 'The name of the environment.'],
+                                    'description' => ['type' => 'string', 'description' => 'The description of the environment.'],
+                                ]
+                            ),
+                        ],
                     ],
                 ),
             ),
@@ -211,12 +164,12 @@ class ProjectController extends Controller
                 ]
             ),
             new OA\Response(
-                response: 401,
-                ref: '#/components/responses/401',
-            ),
-            new OA\Response(
                 response: 400,
                 ref: '#/components/responses/400',
+            ),
+            new OA\Response(
+                response: 401,
+                ref: '#/components/responses/401',
             ),
             new OA\Response(
                 response: 404,
@@ -226,7 +179,7 @@ class ProjectController extends Controller
     )]
     public function create_project(Request $request)
     {
-        $allowedFields = ['name', 'description'];
+        $allowedFields = ['name', 'description', 'environments'];
 
         $teamId = getTeamIdFromToken();
         if (is_null($teamId)) {
@@ -240,6 +193,9 @@ class ProjectController extends Controller
         $validator = customApiValidator($request->all(), [
             'name' => 'string|max:255|required',
             'description' => 'string|nullable',
+            'environments' => 'array|nullable',
+            'environments.*.name' => 'string|max:255|required_with:environments',
+            'environments.*.description' => 'string|nullable',
         ]);
 
         $extraFields = array_diff(array_keys($request->all()), $allowedFields);
@@ -259,9 +215,20 @@ class ProjectController extends Controller
 
         $project = Project::create([
             'name' => $request->name,
-            'description' => $request->description,
+            'description' => $request->description ?? null,
             'team_id' => $teamId,
         ]);
+
+        if ($request->has('environments') && is_array($request->environments)) {
+            foreach ($request->environments as $environment) {
+                if (is_array($environment) && isset($environment['name']) && ! empty($environment['name'])) {
+                    $project->environments()->create([
+                        'name' => $environment['name'],
+                        'description' => $environment['description'] ?? null,
+                    ]);
+                }
+            }
+        }
 
         return response()->json([
             'uuid' => $project->uuid,
@@ -269,7 +236,7 @@ class ProjectController extends Controller
     }
 
     #[OA\Patch(
-        summary: 'Update',
+        summary: 'Update Project',
         description: 'Update Project.',
         path: '/projects/{uuid}',
         operationId: 'update-project-by-uuid',
@@ -375,7 +342,7 @@ class ProjectController extends Controller
     }
 
     #[OA\Delete(
-        summary: 'Delete',
+        summary: 'Delete Project',
         description: 'Delete project by UUID.',
         path: '/projects/{uuid}',
         operationId: 'delete-project-by-uuid',
@@ -435,13 +402,19 @@ class ProjectController extends Controller
         if (! $request->uuid) {
             return response()->json(['message' => 'UUID is required.'], 422);
         }
-        $project = Project::whereTeamId($teamId)->whereUuid($request->uuid)->first();
+        $project = Project::whereTeamId($teamId)
+            ->whereUuid($request->uuid)
+            ->with('environments')
+            ->first();
+
         if (! $project) {
             return response()->json(['message' => 'Project not found.'], 404);
         }
         if (! $project->isEmpty()) {
             return response()->json(['message' => 'Project has resources, so it cannot be deleted.'], 400);
         }
+
+        $project->environments()->delete();
 
         $project->delete();
 

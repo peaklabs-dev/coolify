@@ -270,4 +270,65 @@ class TeamController extends Controller
             serializeApiResponse($team->members),
         );
     }
+
+    #[OA\Post(
+        summary: 'Create',
+        description: 'Create a new team.',
+        path: '/teams',
+        operationId: 'create-team',
+        security: [
+            ['bearerAuth' => []],
+        ],
+        tags: ['Teams'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'My Team'),
+                    new OA\Property(property: 'description', type: 'string', example: 'My team description'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Team created successfully.',
+                content: new OA\JsonContent(ref: '#/components/schemas/Team')
+            ),
+            new OA\Response(
+                response: 401,
+                ref: '#/components/responses/401',
+            ),
+            new OA\Response(
+                response: 400,
+                ref: '#/components/responses/400',
+            ),
+        ]
+    )]
+    public function store(Request $request)
+    {
+        $teamId = getTeamIdFromToken();
+        if (is_null($teamId)) {
+            return invalidTokenResponse();
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $team = new \App\Models\Team;
+        $team->name = $request->name;
+        $team->description = $request->description;
+        $team->personal_team = false;
+        $team->save();
+
+        auth()->user()->teams()->attach($team, ['role' => 'owner']);
+
+        return response()->json(
+            $this->removeSensitiveData($team),
+            201
+        );
+    }
 }

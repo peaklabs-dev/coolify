@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Settings;
 
+use App\Actions\Upgrade\Upgrade;
 use App\Jobs\CheckForUpdatesJob;
 use App\Models\InstanceSettings;
 use App\Models\Server;
@@ -239,5 +240,15 @@ class Index extends Component
         $this->dispatch('success', 'Two step confirmation has been disabled.');
 
         return true;
+    }
+
+    public function upgradeToV5(Upgrade $action)
+    {
+        try {
+            $action->handle();
+            $this->dispatch('success', 'Upgrade to V5 process has been initiated.');
+        } catch (\Exception $e) {
+            return handleError($e, $this);
+        }
     }
 }

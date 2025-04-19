@@ -3,6 +3,17 @@
         Settings | Coolify
     </x-slot>
     <x-settings.navbar />
+    <div class="mt-2 pb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="mb-2">Upgrade to V5</h4>
+                <p class="text-sm">Upgrade your Coolify instance to version 5.</p>
+            </div>
+            <x-forms.button wire:click="upgradeToV5" type="button">
+                Upgrade to V5
+            </x-forms.button>
+        </div>
+    </div>
     <form wire:submit='submit' class="flex flex-col">
         <div class="flex items-center gap-2">
             <h2>Configuration</h2>
